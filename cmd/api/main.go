@@ -12,7 +12,7 @@ func main() {
 	db := database.NewDB().ConnectPostgres()
 
 	infra := infra.NewInfraFactory()
-	infraHttp, err := infra.CreateInfraHttp(config.GetString(config.CFG_APP_PORT, ""), db.Postgres)
+	infraHttp, err := infra.CreateInfraHttp(config.GetString(config.CFG_APP_PORT, ""), &db)
 	if err != nil {
 		panic(err)
 	}

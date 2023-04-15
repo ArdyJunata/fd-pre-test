@@ -1,7 +1,11 @@
 package infrahttp
 
 import (
-	"database/sql"
+	"fd-test/application/adapter"
+	"fd-test/application/controller"
+	"fd-test/application/database"
+	"fd-test/application/repository"
+	"fd-test/application/service"
 	"fmt"
 
 	"github.com/gin-gonic/gin"
@@ -10,10 +14,10 @@ import (
 type Router struct {
 	router *gin.Engine
 	port   string
-	db     *sql.DB
+	db     *database.DB
 }
 
-func NewRouter(port string, db *sql.DB) Router {
+func NewRouter(port string, db *database.DB) Router {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
@@ -33,6 +37,13 @@ func NewRouter(port string, db *sql.DB) Router {
 
 func (r Router) Run() {
 	fmt.Println("server running at port", r.port)
+
+	userAdapter := adapter.NewUserAdapter()
+	userRepo := repository.NewUserRepo(r.db)
+	userService := service.NewUserService(userRepo, userAdapter)
+	userController := controller.NewUserController(userService)
+
+	userController.RegisterRoute(r.router)
 
 	r.router.Run(fmt.Sprintf(":%s", r.port))
 }
