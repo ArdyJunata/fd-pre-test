@@ -6,11 +6,11 @@ import (
 )
 
 type FetchUserResponse struct {
-	ID        int    `json:"id" validate:"required"`
-	Email     string `json:"email" validate:"required"`
-	FirstName string `json:"first_name" validate:"required"`
-	LastName  string `json:"last_name" validate:"required"`
-	Avatar    string `json:"avatar" validate:"required"`
+	ID        int    `json:"id" binding:"required"`
+	Email     string `json:"email" binding:"required"`
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
+	Avatar    string `json:"avatar" binding:"required"`
 }
 
 func (c FetchUserResponse) ParseToModel() model.User {
@@ -23,4 +23,15 @@ func (c FetchUserResponse) ParseToModel() model.User {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
+}
+
+type UserResponse struct {
+	ID        int        `json:"id"`
+	Email     string     `json:"email"`
+	FirstName string     `json:"first_name"`
+	LastName  string     `json:"last_name"`
+	Avatar    string     `json:"avatar"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }

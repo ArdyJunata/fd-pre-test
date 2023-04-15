@@ -10,9 +10,9 @@ var (
 	FetchUser = `
 		INSERT INTO USERS (
 			id, email, first_name, last_name,
-			created_at, updated_at
+			avatar, created_at, updated_at
 		) VALUES (
-			$1, $2, $3, $4, $5, $6
+			$1, $2, $3, $4, $5, $6, $7
 		)
 	`
 
@@ -24,10 +24,42 @@ var (
 
 type UserRepository interface {
 	FetchUser(ctx context.Context, data model.User) error
+	FindUserById(ctx context.Context, id int) (model.User, error)
 }
 
 type userRepo struct {
 	db *database.DB
+}
+
+// FindUserById implements UserRepository
+func (u userRepo) FindUserById(ctx context.Context, id int) (model.User, error) {
+	stmt, err := u.db.Postgres.Prepare(FindUserById)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	defer stmt.Close()
+
+	row := stmt.QueryRow(id)
+
+	user := model.User{}
+
+	err = row.Scan(
+		&user.ID,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Avatar,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt,
+	)
+
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil
 }
 
 // FetchUser implements UserRepository
@@ -40,7 +72,7 @@ func (u userRepo) FetchUser(ctx context.Context, data model.User) error {
 	defer stmt.Close()
 
 	_, err = stmt.Exec(
-		data.ID, data.Email, data.FirstName, data.LastName, data.CreatedAt, data.UpdatedAt,
+		data.ID, data.Email, data.FirstName, data.LastName, data.Avatar, data.CreatedAt, data.UpdatedAt,
 	)
 
 	return err
