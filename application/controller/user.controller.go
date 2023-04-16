@@ -22,6 +22,7 @@ func (u userController) RegisterRoute(route *gin.Engine) {
 	base := route.Group("/user")
 	base.GET("/fetch", u.FetchUser)
 	base.GET("/:id", u.FindUserById)
+	base.GET("", u.FindAllUser)
 }
 
 func (u userController) FetchUser(ctx *gin.Context) {
@@ -62,6 +63,18 @@ func (u userController) FindUserById(ctx *gin.Context) {
 	}
 
 	response := response.Success(response.MSG_FIND_ONE_USER_SUCCESS).WithData(resp)
+
+	ctx.JSON(response.StatusCode, response)
+}
+
+func (u userController) FindAllUser(ctx *gin.Context) {
+	resp, respErr := u.svc.FindAllUser(ctx)
+	if !respErr.IsNoError {
+		ctx.AbortWithStatusJSON(respErr.StatusCode, respErr)
+		return
+	}
+
+	response := response.Success(response.MSG_FIND_ALL_USER_SUCCESS).WithData(resp)
 
 	ctx.JSON(response.StatusCode, response)
 }

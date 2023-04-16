@@ -12,11 +12,39 @@ import (
 type UserService interface {
 	FetchUser(ctx context.Context, req params.FetchUserRequest) ([]params.FetchUserResponse, response.ResponseError)
 	FindUserById(ctx context.Context, req params.GetUserByIdRequest) (params.UserResponse, response.ResponseError)
+	FindAllUser(ctx context.Context) ([]params.UserResponse, response.ResponseError)
 }
 
 type userService struct {
 	userRepo    repository.UserRepository
 	userAdapter adapter.UserAdapter
+}
+
+// FindAllUser implements UserService
+func (u userService) FindAllUser(ctx context.Context) ([]params.UserResponse, response.ResponseError) {
+	resp := []params.UserResponse{}
+
+	users, err := u.userRepo.FindAllUser(ctx)
+	if err != nil {
+		return resp, *response.Error(err).WithMessage(response.MSG_FIND_ALL_USER_FAILED).WithInfo("FindAllUser", "try to query to db")
+	}
+
+	for _, v := range users {
+		user := params.UserResponse{
+			ID:        v.ID,
+			Email:     v.Email,
+			FirstName: v.FirstName,
+			LastName:  v.LastName,
+			Avatar:    v.Avatar,
+			CreatedAt: v.CreatedAt,
+			UpdatedAt: v.UpdatedAt,
+			DeletedAt: v.DeletedAt,
+		}
+
+		resp = append(resp, user)
+	}
+
+	return resp, response.NotError()
 }
 
 // FindUserById implements UserService

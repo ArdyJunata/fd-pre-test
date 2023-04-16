@@ -20,15 +20,58 @@ var (
 		SELECT * FROM USERS
 		WHERE id = $1
 	`
+
+	FindAllUser = `
+		SELECT * FROM USERS
+	`
 )
 
 type UserRepository interface {
 	FetchUser(ctx context.Context, data model.User) error
 	FindUserById(ctx context.Context, id int) (model.User, error)
+	FindAllUser(ctx context.Context) ([]model.User, error)
 }
 
 type userRepo struct {
 	db *database.DB
+}
+
+// FindAllUser implements UserRepository
+func (u userRepo) FindAllUser(ctx context.Context) ([]model.User, error) {
+	stmt, err := u.db.Postgres.Prepare(FindAllUser)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	var users = []model.User{}
+	for rows.Next() {
+		var user = model.User{}
+		err := rows.Scan(
+			&user.ID,
+			&user.Email,
+			&user.FirstName,
+			&user.LastName,
+			&user.Avatar,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+
 }
 
 // FindUserById implements UserRepository
