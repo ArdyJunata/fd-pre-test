@@ -4,6 +4,7 @@ import (
 	"context"
 	"fd-test/application/database"
 	"fd-test/application/model"
+	"fmt"
 )
 
 var (
@@ -24,16 +25,83 @@ var (
 	FindAllUser = `
 		SELECT * FROM USERS
 	`
+
+	CreateUser = `
+		INSERT INTO USERS (
+			email, first_name, last_name,
+			avatar, created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6
+		)
+	`
+
+	GetMaxId = `
+		SELECT MAX(id) FROM users;
+	`
 )
 
 type UserRepository interface {
 	FetchUser(ctx context.Context, data model.User) error
 	FindUserById(ctx context.Context, id int) (model.User, error)
 	FindAllUser(ctx context.Context) ([]model.User, error)
+	CreateUser(ctx context.Context, data model.User) error
+	GetMaxUser(ctx context.Context) (int, error)
+	UpdateSequenceId(ctx context.Context, newValue int) error
 }
 
 type userRepo struct {
 	db *database.DB
+}
+
+// UpdateSequenceId implements UserRepository
+func (u userRepo) UpdateSequenceId(ctx context.Context, newValue int) error {
+	stmt, err := u.db.Postgres.Prepare("ALTER SEQUENCE users_id_seq RESTART WITH " + fmt.Sprintf("%d", newValue+1))
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetMaxUser implements UserRepository
+func (u userRepo) GetMaxUser(ctx context.Context) (int, error) {
+	stmt, err := u.db.Postgres.Prepare(GetMaxId)
+	if err != nil {
+		return 0, err
+	}
+
+	row := stmt.QueryRow()
+
+	maxId := 0
+	err = row.Scan(&maxId)
+	if err != nil {
+		return 0, err
+	}
+
+	return maxId, nil
+}
+
+// CreateUser implements UserRepository
+func (u userRepo) CreateUser(ctx context.Context, data model.User) error {
+	stmt, err := u.db.Postgres.Prepare(CreateUser)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(
+		data.Email, data.FirstName, data.LastName, data.Avatar, data.CreatedAt, data.UpdatedAt,
+	)
+
+	return err
 }
 
 // FindAllUser implements UserRepository
@@ -117,8 +185,21 @@ func (u userRepo) FetchUser(ctx context.Context, data model.User) error {
 	_, err = stmt.Exec(
 		data.ID, data.Email, data.FirstName, data.LastName, data.Avatar, data.CreatedAt, data.UpdatedAt,
 	)
+	if err != nil {
+		return err
+	}
 
-	return err
+	maxId, err := u.GetMaxUser(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = u.UpdateSequenceId(ctx, maxId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUserRepo(db *database.DB) UserRepository {

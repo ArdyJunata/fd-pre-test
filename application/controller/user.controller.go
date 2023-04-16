@@ -23,6 +23,7 @@ func (u userController) RegisterRoute(route *gin.Engine) {
 	base.GET("/fetch", u.FetchUser)
 	base.GET("/:id", u.FindUserById)
 	base.GET("", u.FindAllUser)
+	base.POST("", u.CreateUser)
 }
 
 func (u userController) FetchUser(ctx *gin.Context) {
@@ -77,4 +78,25 @@ func (u userController) FindAllUser(ctx *gin.Context) {
 	response := response.Success(response.MSG_FIND_ALL_USER_SUCCESS).WithData(resp)
 
 	ctx.JSON(response.StatusCode, response)
+}
+
+func (u userController) CreateUser(ctx *gin.Context) {
+	var req params.CreateUserRequest
+
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		resp := response.Error(err).WithMessage(response.MSG_CREATE_USER_FAILED).WithInfo("CreateUser", "try to parse struct")
+		ctx.AbortWithStatusJSON(resp.StatusCode, resp)
+		return
+	}
+
+	respErr := u.svc.CreateUser(ctx, req)
+	if !respErr.IsNoError {
+		ctx.AbortWithStatusJSON(respErr.StatusCode, respErr)
+		return
+	}
+
+	resp := response.Success(response.MSG_CREATE_USER_SUCCESS)
+
+	ctx.JSON(resp.StatusCode, resp)
 }

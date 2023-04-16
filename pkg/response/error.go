@@ -32,6 +32,12 @@ func (c *ResponseError) WithMessage(msg string) *ResponseError {
 	return c
 }
 
+func (c *ResponseError) WithStatusCode(code int) *ResponseError {
+	c.StatusCode = code
+
+	return c
+}
+
 func (c *ResponseError) WithInfo(usecase, info string) *ResponseError {
 	c.AdditionalInfo = &AdditionalInfo{
 		Usecase: usecase,

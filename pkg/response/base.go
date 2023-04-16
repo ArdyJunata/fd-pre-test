@@ -14,4 +14,7 @@ const (
 
 	MSG_FIND_ALL_USER_FAILED  string = "find all user failed"
 	MSG_FIND_ALL_USER_SUCCESS string = "find all user success"
+
+	MSG_CREATE_USER_FAILED  string = "create user failed"
+	MSG_CREATE_USER_SUCCESS string = "create user success"
 )
