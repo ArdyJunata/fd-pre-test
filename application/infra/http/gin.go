@@ -15,6 +15,7 @@ type Router struct {
 	router *gin.Engine
 	port   string
 	db     *database.DB
+	middle Middleware
 }
 
 func NewRouter(port string, db *database.DB) Router {
@@ -41,9 +42,15 @@ func (r Router) Run() {
 	userAdapter := adapter.NewUserAdapter()
 	userRepo := repository.NewUserRepo(r.db)
 	userService := service.NewUserService(userRepo, userAdapter)
-	userController := controller.NewUserController(userService)
+	userController := controller.NewUserController(userService, r.middle)
 
 	userController.RegisterRoute(r.router)
 
 	r.router.Run(fmt.Sprintf(":%s", r.port))
+}
+
+func (r Router) SetMiddleware() Router {
+	mid := NewMiddleware()
+	r.middle = mid
+	return r
 }

@@ -16,5 +16,5 @@ func NewInfraFactory() *InfraBuilder {
 }
 
 func (i InfraBuilder) CreateInfraHttp(port string, db *database.DB) (Infra, error) {
-	return infrahttp.NewRouter(port, db), nil
+	return infrahttp.NewRouter(port, db).SetMiddleware(), nil
 }

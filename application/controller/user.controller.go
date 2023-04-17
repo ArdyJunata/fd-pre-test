@@ -1,6 +1,7 @@
 package controller
 
 import (
+	handlers "fd-test/application/controller/http"
 	"fd-test/application/params"
 	"fd-test/application/service"
 	"fd-test/pkg/response"
@@ -10,11 +11,13 @@ import (
 
 type userController struct {
 	svc service.UserService
+	mid handlers.MidValidationAuth
 }
 
-func NewUserController(svc service.UserService) userController {
+func NewUserController(svc service.UserService, mid handlers.MidValidationAuth) userController {
 	return userController{
 		svc: svc,
+		mid: mid,
 	}
 }
 
@@ -25,6 +28,7 @@ func (u userController) RegisterRoute(route *gin.Engine) {
 	base.GET("", u.FindAllUser)
 	base.POST("", u.CreateUser)
 	base.PUT("/:id", u.UpdateUserById)
+	base.DELETE("/:id", u.mid.Auth(), u.DeleteUserById)
 }
 
 func (u userController) FetchUser(ctx *gin.Context) {
@@ -126,6 +130,27 @@ func (u userController) UpdateUserById(ctx *gin.Context) {
 	}
 
 	resp := response.Success(response.MSG_UPDATE_USER_SUCCESS)
+
+	ctx.JSON(resp.StatusCode, resp)
+}
+
+func (u userController) DeleteUserById(ctx *gin.Context) {
+	var req params.DeleteUserRequest
+
+	err := ctx.ShouldBindUri(&req)
+	if err != nil {
+		resp := response.Error(err).WithMessage(response.MSG_DELETE_USER_FAILED).WithInfo("DeleteUser", "try to parse struct")
+		ctx.AbortWithStatusJSON(resp.StatusCode, resp)
+		return
+	}
+
+	respErr := u.svc.DeleteOneUserById(ctx, req)
+	if !respErr.IsNoError {
+		ctx.AbortWithStatusJSON(respErr.StatusCode, respErr)
+		return
+	}
+
+	resp := response.Success(response.MSG_DELETE_USER_SUCCESS)
 
 	ctx.JSON(resp.StatusCode, resp)
 }

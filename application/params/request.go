@@ -50,3 +50,7 @@ func (c UpdateUserRequest) ParseToModel() model.User {
 		UpdatedAt: time.Now(),
 	}
 }
+
+type DeleteUserRequest struct {
+	ID int `uri:"id"`
+}

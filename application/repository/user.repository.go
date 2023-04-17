@@ -41,8 +41,8 @@ var (
 
 	UpdateOneUser = `
 		UPDATE USERS set email = $1, first_name = $2,
-		last_name = $3, avatar = $4, updated_at = $5
-		WHERE id = $6
+		last_name = $3, avatar = $4, updated_at = $5, deleted_at = $6
+		WHERE id = $7
 	`
 )
 
@@ -75,6 +75,7 @@ func (u userRepo) UpdateUserById(ctx context.Context, data model.User) error {
 		data.LastName,
 		data.Avatar,
 		data.UpdatedAt,
+		data.DeletedAt,
 		data.ID,
 	)
 	if err != nil {

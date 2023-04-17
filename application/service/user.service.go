@@ -8,6 +8,7 @@ import (
 	"fd-test/pkg/response"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type UserService interface {
@@ -16,11 +17,30 @@ type UserService interface {
 	FindAllUser(ctx context.Context) ([]params.UserResponse, response.ResponseError)
 	CreateUser(ctx context.Context, req params.CreateUserRequest) response.ResponseError
 	UpdateUserById(ctx context.Context, req params.UpdateUserRequest) response.ResponseError
+	DeleteOneUserById(ctx context.Context, req params.DeleteUserRequest) response.ResponseError
 }
 
 type userService struct {
 	userRepo    repository.UserRepository
 	userAdapter adapter.UserAdapter
+}
+
+// DeleteOneUserById implements UserService
+func (u userService) DeleteOneUserById(ctx context.Context, req params.DeleteUserRequest) response.ResponseError {
+	user, err := u.userRepo.FindUserById(ctx, req.ID)
+	if err != nil {
+		return *response.Error(err).WithMessage(response.MSG_DELETE_USER_FAILED).WithInfo("DeleteUser", "try to get user by id").WithStatusCode(http.StatusInternalServerError)
+	}
+
+	t := time.Now()
+	user.DeletedAt = &t
+
+	err = u.userRepo.UpdateUserById(ctx, user)
+	if err != nil {
+		return *response.Error(err).WithMessage(response.MSG_DELETE_USER_FAILED).WithInfo("DeleteUser", "try to update user deleted at by id").WithStatusCode(http.StatusInternalServerError)
+	}
+
+	return response.NotError()
 }
 
 // UpdateUserById implements UserService

@@ -20,4 +20,7 @@ const (
 
 	MSG_UPDATE_USER_FAILED  string = "update user failed"
 	MSG_UPDATE_USER_SUCCESS string = "update user success"
+
+	MSG_DELETE_USER_FAILED  string = "delete user failed"
+	MSG_DELETE_USER_SUCCESS string = "delete user success"
 )
