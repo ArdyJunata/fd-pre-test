@@ -15,11 +15,24 @@ type UserService interface {
 	FindUserById(ctx context.Context, req params.GetUserByIdRequest) (params.UserResponse, response.ResponseError)
 	FindAllUser(ctx context.Context) ([]params.UserResponse, response.ResponseError)
 	CreateUser(ctx context.Context, req params.CreateUserRequest) response.ResponseError
+	UpdateUserById(ctx context.Context, req params.UpdateUserRequest) response.ResponseError
 }
 
 type userService struct {
 	userRepo    repository.UserRepository
 	userAdapter adapter.UserAdapter
+}
+
+// UpdateUserById implements UserService
+func (u userService) UpdateUserById(ctx context.Context, req params.UpdateUserRequest) response.ResponseError {
+	payload := req.ParseToModel()
+
+	err := u.userRepo.UpdateUserById(ctx, payload)
+	if err != nil {
+		return *response.Error(err).WithMessage(response.MSG_UPDATE_USER_FAILED).WithInfo("CreateUser", "try to insert query to db").WithStatusCode(http.StatusInternalServerError)
+	}
+
+	return response.NotError()
 }
 
 // CreateUser implements UserService

@@ -38,6 +38,12 @@ var (
 	GetMaxId = `
 		SELECT MAX(id) FROM users;
 	`
+
+	UpdateOneUser = `
+		UPDATE USERS set email = $1, first_name = $2,
+		last_name = $3, avatar = $4, updated_at = $5
+		WHERE id = $6
+	`
 )
 
 type UserRepository interface {
@@ -47,10 +53,35 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, data model.User) error
 	GetMaxUser(ctx context.Context) (int, error)
 	UpdateSequenceId(ctx context.Context, newValue int) error
+	UpdateUserById(ctx context.Context, data model.User) error
 }
 
 type userRepo struct {
 	db *database.DB
+}
+
+// UpdateUserById implements UserRepository
+func (u userRepo) UpdateUserById(ctx context.Context, data model.User) error {
+	stmt, err := u.db.Postgres.Prepare(UpdateOneUser)
+	if err != nil {
+		return err
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(
+		data.Email,
+		data.FirstName,
+		data.LastName,
+		data.Avatar,
+		data.UpdatedAt,
+		data.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateSequenceId implements UserRepository

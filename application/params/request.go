@@ -31,3 +31,22 @@ type FetchUserRequest struct {
 type GetUserByIdRequest struct {
 	ID int `uri:"id"`
 }
+
+type UpdateUserRequest struct {
+	ID        int    `uri:"id"`
+	Email     string `json:"email" validate:"required"`
+	FirstName string `json:"first_name" validate:"required"`
+	LastName  string `json:"last_name" validate:"required"`
+	Avatar    string `json:"avatar" validate:"required"`
+}
+
+func (c UpdateUserRequest) ParseToModel() model.User {
+	return model.User{
+		ID:        c.ID,
+		Email:     c.Email,
+		FirstName: c.FirstName,
+		LastName:  c.LastName,
+		Avatar:    c.Avatar,
+		UpdatedAt: time.Now(),
+	}
+}

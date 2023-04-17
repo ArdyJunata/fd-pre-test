@@ -17,4 +17,7 @@ const (
 
 	MSG_CREATE_USER_FAILED  string = "create user failed"
 	MSG_CREATE_USER_SUCCESS string = "create user success"
+
+	MSG_UPDATE_USER_FAILED  string = "update user failed"
+	MSG_UPDATE_USER_SUCCESS string = "update user success"
 )
