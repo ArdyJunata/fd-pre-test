@@ -20,10 +20,12 @@ var (
 	FindUserById = `
 		SELECT * FROM USERS
 		WHERE id = $1
+		AND deleted_at IS NULL
 	`
 
 	FindAllUser = `
 		SELECT * FROM USERS
+		WHERE deleted_at IS NULL
 	`
 
 	CreateUser = `
@@ -43,6 +45,7 @@ var (
 		UPDATE USERS set email = $1, first_name = $2,
 		last_name = $3, avatar = $4, updated_at = $5, deleted_at = $6
 		WHERE id = $7
+		AND deleted_at IS NULL
 	`
 )
 
